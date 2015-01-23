@@ -30,22 +30,22 @@ public class GlobalStoreDAO {
 	private Cluster cluster;
 	private Session session;
 	
-	private static final String keyspace = "globalstore";
-	private static final String storeObjectTableName = keyspace + ".object";
-	private static final String timeSeriesTableName = keyspace + ".timeseries";
-	private static final String dataPointTableName = keyspace + ".datapoints";
+	private static final String defaultKeyspace = "datastax_global_store";
+	private static final String storeObjectTableName = defaultKeyspace + ".object";
+	private static final String timeSeriesTableName = defaultKeyspace + ".timeseries";
+	private static final String dataPointTableName = defaultKeyspace + ".datapoints";
 		
 	private static final String getFromStoreCQL = "select * from " + storeObjectTableName + " where key = ?";
 	private static final String putInStoreCQL = "insert into " + storeObjectTableName + " (key, value) values (?,?)";
 	
-	private static final String selectTimeSeriesCQL = "Insert into " + timeSeriesTableName + " (key,dates,values) values (?,?,?);";
-	private static final String insertTimeSeriesCQL = "Select key, dates, ticks from " + timeSeriesTableName + " where key = ?";
+	private static final String insertTimeSeriesCQL = "Insert into " + timeSeriesTableName + " (key,dates,values) values (?,?,?);";
+	private static final String selectTimeSeriesCQL = "Select key, dates, ticks from " + timeSeriesTableName + " where key = ?";
 
-	private static final String selectClusterDataPointsCQL = "Insert into " + dataPointTableName + " (key,name,value) values (?,?,?);";
-	private static final String insertClusterDataPointsCQL = "Select key, date, value from " + dataPointTableName + " where key = ?";
+	private static final String insertClusterDataPointsCQL = "Insert into " + dataPointTableName + " (key,name,value) values (?,?,?);";
+	private static final String selectClusterDataPointsCQL = "Select key, date, value from " + dataPointTableName + " where key = ? and date < ? and date >= ? limit ?";
 	
-	private static final String selectClusterTimeSeriesCQL = "Insert into " + timeSeriesTableName + " (key,date,value) values (?,?,?);";
-	private static final String insertClusterTimeSeriesCQL = "Select key, name, value from " + timeSeriesTableName + " where key = ?";
+	private static final String insertClusterTimeSeriesCQL = "Insert into " + timeSeriesTableName + " (key,date,value) values (?,?,?);";
+	private static final String selectClusterTimeSeriesCQL = "Select key, name, value from " + timeSeriesTableName + " where key = ?";
 
 	
 	private PreparedStatement putInStore;
@@ -138,8 +138,8 @@ public class GlobalStoreDAO {
 		
 		BoundStatement boundStmt = new BoundStatement(this.insertTimeSeries);
 		
-		ByteBuffer datesBuffer = ByteBuffer.allocate(4000000*8);
-		ByteBuffer pricesBuffer = ByteBuffer.allocate(4000000*8);
+		ByteBuffer datesBuffer = ByteBuffer.allocate((timeSeries.getDates().length + 1)*8);
+		ByteBuffer pricesBuffer = ByteBuffer.allocate((timeSeries.getDates().length + 1)*8);
 		
 		long[] dates = timeSeries.getDates();
 		double[] values = timeSeries.getValues();
@@ -180,6 +180,34 @@ public class GlobalStoreDAO {
 	public void insertDataPoints(String key, String name, double value) throws Exception{
 		
 		BoundStatement boundStmt = this.insertClusterDataPoints.bind(key, name, value);
+					
+		session.execute(boundStmt);
+	}
+	
+	public TimeSeries getTimeSeries(String key, long start, long end, int limit){
+		
+		BoundStatement boundStmt = this.selectClusterTimeSeries.bind(key, start, end, limit);
+		
+		ResultSet rs = session.execute(boundStmt);
+		List<Row> all = rs.all();
+				
+		DoubleArrayList valueArray = new DoubleArrayList(20000);
+		LongArrayList dateArray = new LongArrayList(20000);
+		
+		for (Row row : all){
+			dateArray.add(row.getLong("date"));
+			valueArray.add(row.getDouble("value"));	
+		}
+		
+		dateArray.trimToSize();
+		valueArray.trimToSize();
+		
+		return new TimeSeries(key, dateArray.elements(), valueArray.elements());
+	}	
+
+	public void insertTimesSeries(String key, long date, double value) {
+		
+		BoundStatement boundStmt = this.insertClusterTimeSeries.bind(key, date, value);
 					
 		session.execute(boundStmt);
 	}

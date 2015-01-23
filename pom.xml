@@ -35,11 +35,6 @@
 			<artifactId>guava-primitives</artifactId>
 			<version>r03</version>
 		</dependency>
-		<dependency>
-			<groupId>com.datastax.demo</groupId>
-			<artifactId>datastax-timeseries-lib</artifactId>
-			<version>0.1-SNAPSHOT</version>
-		</dependency>
 		
 		<dependency>
 			<groupId>commons-lang</groupId>

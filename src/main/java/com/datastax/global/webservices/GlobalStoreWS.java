@@ -11,8 +11,7 @@ import com.datastax.global.dao.GlobalStoreDAO;
 
 @Path("/globalstore/")
 public class GlobalStoreWS {
-	
-	private GlobalStoreDAO orderManagementDAO = new GlobalStoreDAO(new String[]{"127.0.0.1"});
+
 	
 	@GET
 	@Path("/data/get/")
