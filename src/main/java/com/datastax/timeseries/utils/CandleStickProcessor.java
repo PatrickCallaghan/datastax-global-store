@@ -19,7 +19,7 @@ public class CandleStickProcessor {
 	public static CandleStickSeries createCandleStickSeries(TimeSeries timeSeries, Periodicity periodicity,
 			DateTime startTime) {
 
-		CandleStickSeries candleStickSeries = new CandleStickSeries(timeSeries.getSymbol());
+		CandleStickSeries candleStickSeries = new CandleStickSeries(timeSeries.getKey());
 		List<Long> candleStickTimePoints = FunctionProcessor.createDatesByPeriodicity(periodicity,
 				startTime.getMillis(), timeSeries);
 

@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.LongBuffer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -13,14 +14,15 @@ import org.slf4j.LoggerFactory;
 import cern.colt.list.DoubleArrayList;
 import cern.colt.list.LongArrayList;
 
-import com.datastax.demo.utils.ByteUtils;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.timeseries.model.DataPoints;
+import com.datastax.timeseries.model.ObjectData;
 import com.datastax.timeseries.model.TimeSeries;
 
 public class GlobalStoreDAO {
@@ -33,19 +35,20 @@ public class GlobalStoreDAO {
 	private static final String defaultKeyspace = "datastax_global_store";
 	private static final String storeObjectTableName = defaultKeyspace + ".object";
 	private static final String timeSeriesTableName = defaultKeyspace + ".timeseries";
+	private static final String timeSeriesTableFullName = defaultKeyspace + ".timeseries_full";
 	private static final String dataPointTableName = defaultKeyspace + ".datapoints";
 		
 	private static final String getFromStoreCQL = "select * from " + storeObjectTableName + " where key = ?";
 	private static final String putInStoreCQL = "insert into " + storeObjectTableName + " (key, value) values (?,?)";
 	
-	private static final String insertTimeSeriesCQL = "Insert into " + timeSeriesTableName + " (key,dates,values) values (?,?,?);";
-	private static final String selectTimeSeriesCQL = "Select key, dates, ticks from " + timeSeriesTableName + " where key = ?";
+	private static final String insertTimeSeriesCQL = "Insert into " + timeSeriesTableFullName + " (key,dates,values) values (?,?,?);";
+	private static final String selectTimeSeriesCQL = "Select key, dates, values from " + timeSeriesTableFullName + " where key = ?";
 
 	private static final String insertClusterDataPointsCQL = "Insert into " + dataPointTableName + " (key,name,value) values (?,?,?);";
-	private static final String selectClusterDataPointsCQL = "Select key, date, value from " + dataPointTableName + " where key = ? and date < ? and date >= ? limit ?";
+	private static final String selectClusterDataPointsCQL = "Select key, name, value from " + dataPointTableName + " where key = ?";
 	
 	private static final String insertClusterTimeSeriesCQL = "Insert into " + timeSeriesTableName + " (key,date,value) values (?,?,?);";
-	private static final String selectClusterTimeSeriesCQL = "Select key, name, value from " + timeSeriesTableName + " where key = ?";
+	private static final String selectClusterTimeSeriesCQL = "Select key, date, value from " + timeSeriesTableName + " where key = ? and date > ? and date <= ? limit ?";
 
 	
 	private PreparedStatement putInStore;
@@ -77,29 +80,24 @@ public class GlobalStoreDAO {
 		this.insertClusterTimeSeries = session.prepare(insertClusterTimeSeriesCQL);
 	}
 	
-	public Object getObjectFromStore(String key) throws Exception{
+	public ObjectData getObjectFromStore(String key) throws Exception{
 		
-		BoundStatement bound = this.getFromStore.bind(ByteUtils.toByteBuffer(key));
+		BoundStatement bound = this.getFromStore.bind(key);
 		
+		logger.info("Getting object for : " + key);
 		ResultSet rs = session.execute(bound);
 		
-		if (rs.isFullyFetched()){
-			logger.info("No results found for symbol : " + key);
-			throw new RuntimeException ("Object not found for key :"+  key);
-		}else{
-			return ByteUtils.fromByteBuffer(rs.one().getBytes("value"));
-		}
+		return new ObjectData(key, rs.one().getString("value"));
 	}
 	
-	public void putObjectInStore(String key, Object value) throws IOException{
+	public void putObjectInStore(String key, String value) throws IOException{
 		
-		BoundStatement bound = this.putInStore.bind(key, ByteUtils.toByteBuffer(value));
-		
+		BoundStatement bound = this.putInStore.bind(key, value);		
 		session.execute(bound);
 	}
 	
 	
-	public TimeSeries getTimeSeries(String key){
+	public TimeSeries getTimeSeriesFull(String key){
 		
 		BoundStatement boundStmt = new BoundStatement(this.selectTimeSeries);
 		boundStmt.setString(0, key);
@@ -133,8 +131,8 @@ public class GlobalStoreDAO {
 		return new TimeSeries(key, dateArray.elements(), valueArray.elements());
 	}
 
-	public void insertTimeSeries(TimeSeries timeSeries) throws Exception{
-		logger.info("Writing " + timeSeries.getSymbol());
+	public void insertTimeSeriesFull(TimeSeries timeSeries) throws Exception{
+		logger.info("Writing " + timeSeries.getKey());
 		
 		BoundStatement boundStmt = new BoundStatement(this.insertTimeSeries);
 		
@@ -150,7 +148,7 @@ public class GlobalStoreDAO {
 			pricesBuffer.putDouble(values[i]);
 		}
 				
-		session.execute(boundStmt.bind(timeSeries.getSymbol(), datesBuffer.flip(), pricesBuffer.flip()));		
+		session.execute(boundStmt.bind(timeSeries.getKey(), datesBuffer.flip(), pricesBuffer.flip()));		
 		
 		datesBuffer.clear();
 		pricesBuffer.clear();
@@ -172,30 +170,56 @@ public class GlobalStoreDAO {
 			names.add(row.getString("name"));
 			values.add(row.getDouble("value"));
 		}
-		
-		
+	
 		return new DataPoints(key, names.toArray(new String[0]), values.toArray(new Double[0]));
 	}
 
-	public void insertDataPoints(String key, String name, double value) throws Exception{
+	public void insertDataPoints(DataPoints dataPoints){
 		
-		BoundStatement boundStmt = this.insertClusterDataPoints.bind(key, name, value);
-					
-		session.execute(boundStmt);
+		BoundStatement boundStmt = new BoundStatement(insertClusterDataPoints);					
+		List<ResultSetFuture> results = new ArrayList<ResultSetFuture>();
+		
+		String[] names = dataPoints.getNames();
+		
+		for (int i=0; i < names.length; i++){
+			boundStmt.setString(0, dataPoints.getKey());
+			boundStmt.setString(1, dataPoints.getNames()[i]);
+			boundStmt.setDouble(2, dataPoints.getValues()[i]);
+			
+			results.add(session.executeAsync(boundStmt));
+		}			
+		
+		//Wait till we have everything back.
+		boolean wait = true;
+		while (wait) {
+			// start with getting out, if any results are not done, wait is
+			// true.
+			wait = false;
+			for (ResultSetFuture result : results) {
+				if (!result.isDone()) {
+					wait = true;
+					break;
+				}
+			}
+		}
+		
+		return;
 	}
 	
 	public TimeSeries getTimeSeries(String key, long start, long end, int limit){
 		
-		BoundStatement boundStmt = this.selectClusterTimeSeries.bind(key, start, end, limit);
-		
+		BoundStatement boundStmt = this.selectClusterTimeSeries.bind(key, new Date(start), new Date(end), limit);
+
+		logger.info("" +  new Date(start) + " - " + new Date(end) + " " + limit);
 		ResultSet rs = session.execute(boundStmt);
+				
 		List<Row> all = rs.all();
 				
 		DoubleArrayList valueArray = new DoubleArrayList(20000);
 		LongArrayList dateArray = new LongArrayList(20000);
 		
 		for (Row row : all){
-			dateArray.add(row.getLong("date"));
+			dateArray.add(row.getDate("date").getTime());
 			valueArray.add(row.getDouble("value"));	
 		}
 		
@@ -205,10 +229,34 @@ public class GlobalStoreDAO {
 		return new TimeSeries(key, dateArray.elements(), valueArray.elements());
 	}	
 
-	public void insertTimesSeries(String key, long date, double value) {
+	public void insertClusterTimesSeries(TimeSeries timeSeries) {
 		
-		BoundStatement boundStmt = this.insertClusterTimeSeries.bind(key, date, value);
-					
-		session.execute(boundStmt);
+		BoundStatement boundStmt = new BoundStatement(this.insertClusterTimeSeries);					
+		List<ResultSetFuture> results = new ArrayList<ResultSetFuture>();
+		
+		long[] dates = timeSeries.getDates();
+		
+		for (int i=0; i < dates.length; i++){
+			boundStmt.setString(0, timeSeries.getKey());
+			boundStmt.setDate(1, new Date(timeSeries.getDates()[i]));
+			boundStmt.setDouble(2, timeSeries.getValues()[i]);
+			
+			results.add(session.executeAsync(boundStmt));
+		}			
+		
+		//Wait till we have everything back.
+		boolean wait = true;
+		while (wait) {
+			// start with getting out, if any results are not done, wait is
+			// true.
+			wait = false;
+			for (ResultSetFuture result : results) {
+				if (!result.isDone()) {
+					wait = true;
+					break;
+				}
+			}
+		}		
+		return;
 	}
 }

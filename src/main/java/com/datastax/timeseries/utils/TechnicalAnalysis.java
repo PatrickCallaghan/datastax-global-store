@@ -18,6 +18,6 @@ public class TechnicalAnalysis {
 			newValues[i] = movingAverage.getAvg();
 		}
 		
-		return new TimeSeries(timeSeries.getSymbol(), timeSeries.getDates(), newValues);
+		return new TimeSeries(timeSeries.getKey(), timeSeries.getDates(), newValues);
 	}
 }

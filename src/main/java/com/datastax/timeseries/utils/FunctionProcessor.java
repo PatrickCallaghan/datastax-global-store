@@ -47,7 +47,7 @@ public class FunctionProcessor {
 			}
 		}
 
-		return new TimeSeries(timeSeries.getSymbol(), Longs.toArray(newDates), doubles);
+		return new TimeSeries(timeSeries.getKey(), Longs.toArray(newDates), doubles);
 	}
 
 	public static TimeSeries getSumTimeSeriesByPeriod(TimeSeries timeSeries, Periodicity periodicity, DateTime startTime) {
@@ -83,7 +83,7 @@ public class FunctionProcessor {
 			}
 		}
 
-		return new TimeSeries(timeSeries.getSymbol(), Longs.toArray(newDates), doubles);
+		return new TimeSeries(timeSeries.getKey(), Longs.toArray(newDates), doubles);
 	}
 
 	public static TimeSeries getAvgTimeSeriesByPeriod(TimeSeries timeSeries, Periodicity periodicity, DateTime startTime) {
@@ -123,7 +123,7 @@ public class FunctionProcessor {
 			}
 		}
 
-		return new TimeSeries(timeSeries.getSymbol(), Longs.toArray(newDates), doubles);
+		return new TimeSeries(timeSeries.getKey(), Longs.toArray(newDates), doubles);
 	}
 	
 	public static List<Long> createDatesByPeriodicity(Periodicity periodicity, long startTime, TimeSeries timeSeries) {

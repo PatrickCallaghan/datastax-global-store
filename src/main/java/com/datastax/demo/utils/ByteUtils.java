@@ -31,4 +31,31 @@ public class ByteUtils {
 		ois.close();
 		return obj;
 	}
+	
+	public static byte[] toBytes(Object obj) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);
+		oos.writeObject(obj);
+		oos.close();
+		return baos.toByteArray();
+	}
+	
+	public static Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
+        Object obj = null;
+        ByteArrayInputStream bis = null;
+        ObjectInputStream ois = null;
+        try {
+            bis = new ByteArrayInputStream(bytes);
+            ois = new ObjectInputStream(bis);
+            obj = ois.readObject();
+        } finally {
+            if (bis != null) {
+                bis.close();
+            }
+            if (ois != null) {
+                ois.close();
+            }
+        }
+        return obj;
+    }
 }

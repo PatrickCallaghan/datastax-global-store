@@ -1,7 +1,9 @@
 package com.datastax.timeseries.model;
 
-import org.joda.time.DateTime;
+import javax.xml.bind.annotation.XmlRootElement;
 
+import org.joda.time.DateTime;
+@XmlRootElement()
 public class CandleStick {
 
 	private double high;

@@ -46,7 +46,7 @@ public class PeriodicityProcessor {
 			}			
 		}
 		
-		return new TimeSeries(timeSeries.getSymbol(), Longs.toArray(newDates), doubles);		
+		return new TimeSeries(timeSeries.getKey(), Longs.toArray(newDates), doubles);		
 	}
 
 	public static List<Long> createDatesByPeriodicity(Periodicity periodicity, long startTime, TimeSeries timeSeries) {
