@@ -48,9 +48,7 @@ To remove the tables and the schema, run the following.
 
 ###Post an object to the store
 
-```
 curl -X POST -H "Content-Type: application/json" -d'{"key":"test","value":"rO0ABXNyAA5qYXZhLnV0aWwuRGF0ZWhqgQFLWXQZAwAAeHB3CAAAAUsmhmEjeA"}' http://localhost:8080/datastax-global-store/rest/post/object
-```
 
 ###Get object from the store
 
