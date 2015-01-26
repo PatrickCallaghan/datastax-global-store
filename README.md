@@ -46,4 +46,41 @@ To remove the tables and the schema, run the following.
 	
 ##Using
 
-Curl  
+###Post an object to the store
+
+```
+curl -X POST -H "Content-Type: application/json" -d'{"key":"test","value":"rO0ABXNyAA5qYXZhLnV0aWwuRGF0ZWhqgQFLWXQZAwAAeHB3CAAAAUsmhmEjeA"}' http://localhost:8080/datastax-global-store/rest/post/object
+```
+
+###Get object from the store
+
+curl -X GET -H "Content-Type: application/json" http://localhost:8080/datastax-global-store/rest/get/object?key=test
+
+###Post new items to a time series
+
+curl -X POST -H "Content-Type: application/json" -d'{"key":"test","dates":[1395792120000], "values":[102] }' http://localhost:8080/datastax-global-store/rest/post/timeseries
+
+curl -X POST -H "Content-Type: application/json" -d'{"key":"test","dates":[1395793120000], "values":[110] }' http://localhost:8080/datastax-global-store/rest/post/timeseries
+
+###Read a times series back
+ 
+curl -X GET -H "Content-Type: application/json" http://localhost:8080/datastax-global-store/rest/get/timeseries
+
+###Post full time series data
+
+curl -X POST -H "Content-Type: application/json" -d'{"key":"test","dates":[1395792120000,1395883380000,1395883440000,1395885840000,1395886320000,1395886980000,1395887040000,1395889140000,1395889260000,1395889380000,1395890100000,1395890760000,1395891240000,1395891540000,1395893520000,1395894180000,1395894300000,1395894360000,1395895140000,1395895740000,1395895920000,1395896340000,1395896580000,1395896640000,1395898440000,1395898920000,1395898980000,1395899040000,1395899640000,1395899700000,1395899820000,1395899940000,1395900060000,1395900240000,1395900600000,1395900780000,1395900960000,1395901200000,1395901560000,1395901740000,1395902280000,1395902460000,1395902520000,1395902760000,1395902940000],"values":[5.0,6.0,4.0,3.0,4.0,5.0,6.0,7.0,5.0,5.0,6.0,7.0,8.0,5.0,5.0,6.0,7.0,8.0,9.0,7.0,6.0,5.0,6.0,4.0,3.0,5.0,6.0,7.0,5.0,4.0,6.0,3.0,4.0,5.0,7.0,5.0,4.0,6.0,7.0,5.0,5.0,4.0,6.0,7.0,8.0]}' http://localhost:8080/datastax-global-store/rest/post/timeseriesfull
+
+###Read the time series back
+
+curl -X GET -H "Content-Type: application/json"  http://localhost:8080/datastax-global-store/rest/get/timeseriesfull?key=test
+
+###Posts Data Points 
+
+curl -X POST -H "Content-Type: application/json" -d '{"key":"test","names":["London", "Santa Clara", "New York"],"values":[5.0,6.0,4.0]}' http://localhost:8080/datastax-global-store/rest/post/datapoints
+
+###Read the data points back
+
+curl -X GET -H "Content-Type: application/json" http://localhost:8080/datastax-global-store/rest/get/datapoints?key=test
+
+
+
