@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.LongBuffer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import cern.colt.list.DoubleArrayList;
 import cern.colt.list.LongArrayList;
 
+import com.datastax.demo.utils.PropertyHelper;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
@@ -25,18 +28,28 @@ import com.datastax.timeseries.model.DataPoints;
 import com.datastax.timeseries.model.ObjectData;
 import com.datastax.timeseries.model.TimeSeries;
 
+/** 
+ * Global Cassandra DAO 
+ * 
+ * Provide insert/select statement for Object stores.
+ * @author patrickcallaghan
+ *
+ */
 public class GlobalStoreDAO {
-	
+
 	private Logger logger = LoggerFactory.getLogger(GlobalStoreDAO.class);
 
 	private Cluster cluster;
 	private Session session;
-	
+
+	private static final DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
 	private static final String defaultKeyspace = "datastax_global_store";
 	private static final String storeObjectTableName = defaultKeyspace + ".object";
 	private static final String timeSeriesTableName = defaultKeyspace + ".timeseries";
 	private static final String timeSeriesTableFullName = defaultKeyspace + ".timeseries_full";
 	private static final String dataPointTableName = defaultKeyspace + ".datapoints";
+	
+	private static final String serviceUsageTableName = defaultKeyspace + ".service_usage";
 		
 	private static final String getFromStoreCQL = "select * from " + storeObjectTableName + " where key = ?";
 	private static final String putInStoreCQL = "insert into " + storeObjectTableName + " (key, value) values (?,?)";
@@ -50,6 +63,9 @@ public class GlobalStoreDAO {
 	private static final String insertClusterTimeSeriesCQL = "Insert into " + timeSeriesTableName + " (key,date,value) values (?,?,?);";
 	private static final String selectClusterTimeSeriesCQL = "Select key, date, value from " + timeSeriesTableName + " where key = ? and date > ? and date <= ? limit ?";
 
+	private static final String incrServiceUsageCQL = "update " + serviceUsageTableName
+			+ " set count = count + 1 where namespace=? AND key=? AND service=? and ddmmyy=?";
+
 	
 	private PreparedStatement putInStore;
 	private PreparedStatement getFromStore;	
@@ -62,8 +78,11 @@ public class GlobalStoreDAO {
 
 	private PreparedStatement selectClusterTimeSeries;
 	private PreparedStatement insertClusterTimeSeries;
+	private PreparedStatement incrServiceUsage;
 
-	public GlobalStoreDAO(String[] contactPoints) {
+	public GlobalStoreDAO() {
+		String contactPoints = PropertyHelper.getProperty("contactPoints", "127.0.0.1");
+		
 		cluster = Cluster.builder().addContactPoints(contactPoints).build();
 		session = cluster.connect();
 		
@@ -78,6 +97,8 @@ public class GlobalStoreDAO {
 		
 		this.selectClusterTimeSeries = session.prepare(selectClusterTimeSeriesCQL);
 		this.insertClusterTimeSeries = session.prepare(insertClusterTimeSeriesCQL);
+		
+		this.incrServiceUsage = session.prepare(incrServiceUsageCQL);
 	}
 	
 	public ObjectData getObjectFromStore(String key) throws Exception{
@@ -258,5 +279,14 @@ public class GlobalStoreDAO {
 			}
 		}		
 		return;
+	}
+	
+	public void addServiceUsage(String key, String service){
+		
+		
+		String namespace =  key.contains("/") ? key.substring(0, key.indexOf('/')) : key;
+		
+		BoundStatement boundStmt = this.incrServiceUsage.bind(namespace, key, service, df.format(new Date()));
+		session.execute(boundStmt);
 	}
 }

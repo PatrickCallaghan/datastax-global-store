@@ -1,6 +1,10 @@
-use datastax_tickdata_demo; 
+use datastax_global_store; 
 
-truncate tick_data;
-drop table tick_data;
+drop table object;
 
-drop keyspace datastax_tickdata_demo;
+drop table timeseries;
+
+drop table timeseries_full;
+
+drop table datapoints;
+

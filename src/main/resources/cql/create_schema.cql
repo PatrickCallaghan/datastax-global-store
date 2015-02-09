@@ -4,7 +4,7 @@ use datastax_global_store;
 
 CREATE TABLE if not exists object ( 
 	key text,
-	value blob,
+	value text,
 	PRIMARY KEY (key)
 );
 
@@ -15,14 +15,12 @@ CREATE TABLE if not exists timeseries (
 	PRIMARY KEY (key, date)
 ) with clustering order by (date desc);
 
-CREATE TABLE if not exists timeseries-full ( 
+CREATE TABLE if not exists timeseries_full ( 
 	key text,
 	dates blob,
 	values blob,
 	PRIMARY KEY (key)
 );
-
-
 
 CREATE TABLE if not exists datapoints ( 
 	key text,
@@ -30,3 +28,13 @@ CREATE TABLE if not exists datapoints (
 	value double,
 	PRIMARY KEY (key, name)
 );
+
+CREATE TABLE if not exists service_usage (
+	namespace text,
+	key text,	
+	service text,
+	ddmmyy text,
+	count counter,
+	PRIMARY KEY (namespace, key, service, ddmmyy)
+);	
+	

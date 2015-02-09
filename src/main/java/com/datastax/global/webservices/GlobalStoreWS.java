@@ -9,7 +9,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,11 +18,17 @@ import com.datastax.timeseries.model.ObjectData;
 import com.datastax.timeseries.model.Periodicity;
 import com.datastax.timeseries.model.TimeSeries;
 
+/**
+ * Web Service for global service.
+ * @author patrickcallaghan
+ *
+ */
 @Path("/")
 public class GlobalStoreWS {
 
 	private Logger logger = LoggerFactory.getLogger(GlobalStoreWS.class);
 
+	//Service Layer.
 	private GlobalStoreService globalStoreService = new GlobalStoreService();
 
 	@GET
