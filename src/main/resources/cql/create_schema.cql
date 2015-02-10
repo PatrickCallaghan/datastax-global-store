@@ -33,7 +33,7 @@ CREATE TABLE if not exists service_usage (
 	namespace text,
 	key text,	
 	service text,
-	ddmmyy text,
+	ddmmyyyy text,
 	count counter,
 	PRIMARY KEY (namespace, key, service, ddmmyy)
 );	

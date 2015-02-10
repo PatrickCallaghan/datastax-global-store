@@ -64,7 +64,7 @@ public class GlobalStoreDAO {
 	private static final String selectClusterTimeSeriesCQL = "Select key, date, value from " + timeSeriesTableName + " where key = ? and date > ? and date <= ? limit ?";
 
 	private static final String incrServiceUsageCQL = "update " + serviceUsageTableName
-			+ " set count = count + 1 where namespace=? AND key=? AND service=? and ddmmyy=?";
+			+ " set count = count + 1 where namespace=? AND key=? AND service=? and ddmmyyyy=?";
 
 	
 	private PreparedStatement putInStore;
