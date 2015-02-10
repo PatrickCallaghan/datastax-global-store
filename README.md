@@ -22,6 +22,9 @@ The global store allows 2 types of times series data to be held.
 ###Data Point
 This is data where there is a string-number relationship e.g. Temperatures - London:76, New York:45, Santa Clara:82
 
+###Service Usage
+There is also a table called 'service_usage' which shows the number of reads and writes for each type of dataset for each namespace and key.
+   
 ## Schema Setup
 Note : This will drop the keyspace "datastax_global_store" and create a new one. All existing data will be lost. 
 
