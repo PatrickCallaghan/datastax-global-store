@@ -5,7 +5,7 @@ use datastax_global_store;
 CREATE TABLE if not exists object ( 
 	key text,
 	value text,
-	PRIMARY KEY (key)
+	PRIMARY KEY (key, value)
 );
 
 CREATE TABLE if not exists timeseries ( 
@@ -35,6 +35,6 @@ CREATE TABLE if not exists service_usage (
 	service text,
 	ddmmyyyy text,
 	count counter,
-	PRIMARY KEY (namespace, key, service, ddmmyy)
+	PRIMARY KEY (namespace, key, service, ddmmyyyy)
 );	
 	

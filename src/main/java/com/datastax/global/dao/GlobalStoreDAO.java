@@ -51,7 +51,7 @@ public class GlobalStoreDAO {
 	
 	private static final String serviceUsageTableName = defaultKeyspace + ".service_usage";
 		
-	private static final String getFromStoreCQL = "select * from " + storeObjectTableName + " where key = ?";
+	private static final String getFromStoreCQL = "select key, value from " + storeObjectTableName + " where key = ?";
 	private static final String putInStoreCQL = "insert into " + storeObjectTableName + " (key, value) values (?,?)";
 	
 	private static final String insertTimeSeriesCQL = "Insert into " + timeSeriesTableFullName + " (key,dates,values) values (?,?,?);";
@@ -65,7 +65,6 @@ public class GlobalStoreDAO {
 
 	private static final String incrServiceUsageCQL = "update " + serviceUsageTableName
 			+ " set count = count + 1 where namespace=? AND key=? AND service=? and ddmmyyyy=?";
-
 	
 	private PreparedStatement putInStore;
 	private PreparedStatement getFromStore;	
@@ -105,10 +104,12 @@ public class GlobalStoreDAO {
 		
 		BoundStatement bound = this.getFromStore.bind(key);
 		
-		logger.info("Getting object for : " + key);
 		ResultSet rs = session.execute(bound);
-		
-		return new ObjectData(key, rs.one().getString("value"));
+		if (rs != null && !rs.isExhausted()){
+			return new ObjectData(key, rs.one().getString("value"));
+		}else{
+			return new ObjectData();
+		}
 	}
 	
 	public void putObjectInStore(String key, String value) throws IOException{
@@ -240,7 +241,7 @@ public class GlobalStoreDAO {
 		LongArrayList dateArray = new LongArrayList(20000);
 		
 		for (Row row : all){
-			dateArray.add(row.getDate("date").getTime());
+			dateArray.add(row.getTimestamp("date").getTime());
 			valueArray.add(row.getDouble("value"));	
 		}
 		
@@ -259,7 +260,7 @@ public class GlobalStoreDAO {
 		
 		for (int i=0; i < dates.length; i++){
 			boundStmt.setString(0, timeSeries.getKey());
-			boundStmt.setDate(1, new Date(timeSeries.getDates()[i]));
+			boundStmt.setTimestamp(1, new Date(timeSeries.getDates()[i]));
 			boundStmt.setDouble(2, timeSeries.getValues()[i]);
 			
 			results.add(session.executeAsync(boundStmt));

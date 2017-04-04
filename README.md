@@ -5,7 +5,7 @@ This is a simple example of using C* as a Global data store for purely storing d
 
 ## Running the demo 
 
-You will need a java runtime (preferably 7) along with maven 3 to run this demo. Start DSE 3.1.X or a cassandra 1.2.X instance on your local machine. This demo just runs as a standalone process on the localhost.
+You will need a java runtime (preferably 7) along with maven 3 to run this demo. Start DSE 5.0.X. This demo just runs as a standalone process on the localhost.
 
 ## Use Cases
 

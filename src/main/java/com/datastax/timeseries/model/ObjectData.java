@@ -27,6 +27,11 @@ public class ObjectData {
 	public void setValue(String value) {
 		this.value = value;
 	}
+	
+	public boolean isEmpty(){
+		return key==null;
+	}
+	
 	@Override
 	public String toString() {
 		return "ObjectData [key=" + key + ", value=" + value + "]";

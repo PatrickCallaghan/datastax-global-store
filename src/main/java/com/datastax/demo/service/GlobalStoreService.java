@@ -30,7 +30,7 @@ public class GlobalStoreService {
 	//Cache
 	public void putObjectData(ObjectData objectData){
 		try {
-			this.globalStoreDAO.addServiceUsage(objectData.getKey(), WRITE_OBJECT_STORE);			
+			//this.globalStoreDAO.addServiceUsage(objectData.getKey(), WRITE_OBJECT_STORE);			
 			this.globalStoreDAO.putObjectInStore(objectData.getKey(), objectData.getValue());
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -39,7 +39,7 @@ public class GlobalStoreService {
 
 	public ObjectData getObjectData(String key){
 		try {
-			this.globalStoreDAO.addServiceUsage(key, READ_OBJECT_STORE);
+			//this.globalStoreDAO.addServiceUsage(key, READ_OBJECT_STORE);
 			
 			return this.globalStoreDAO.getObjectFromStore(key);
 		} catch (Exception e) {
