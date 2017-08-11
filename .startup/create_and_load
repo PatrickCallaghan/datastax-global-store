@@ -11,7 +11,7 @@ echo 'Building schema'
 sudo mvn clean compile exec:java -Dexec.mainClass="com.datastax.demo.SchemaSetup" -DcontactPoints=node0
 
 echo 'Starting web service on 8081'
-sudo nohup mvn jetty:run -Djetty.port=8081 > /tmp/webservice.log &
+sudo nohup mvn jetty:run -Djetty.port=8081  -DcontactPoints=node0 > /tmp/webservice.log &
 
 
 sleep 2
