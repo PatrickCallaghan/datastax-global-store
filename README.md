@@ -37,11 +37,11 @@ To create the a single node cluster with replication factor of 1 for standard lo
 
     mvn clean compile exec:java -Dexec.mainClass="com.datastax.demo.SchemaSetup"
 
-To run the web server 
+To use the web service run 
 
-    mvn jetty:run
+	mvn jetty:run -Djetty.port=8081
     
-This will start the server on the localhost at port 8080.
+This will start the server on the localhost at port 8081.
 
 To remove the tables and the schema, run the following.
 
