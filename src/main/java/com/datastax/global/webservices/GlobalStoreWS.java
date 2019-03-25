@@ -29,7 +29,7 @@ public class GlobalStoreWS {
 	private Logger logger = LoggerFactory.getLogger(GlobalStoreWS.class);
 
 	//Service Layer.
-	private GlobalStoreService globalStoreService = new GlobalStoreService();
+	private GlobalStoreService globalStoreService =  GlobalStoreService.getInstance();
 
 	@GET
 	@Path("/get/object")

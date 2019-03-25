@@ -21,7 +21,12 @@ public class GlobalStoreService {
 	private final String READ_TIME_SERIES = "READ_TIME_SERIES";
 	private final String READ_DATA_POINTS = "READ_DATA_POINTS";
 
-	private GlobalStoreDAO globalStoreDAO = new GlobalStoreDAO(); 
+	private GlobalStoreDAO globalStoreDAO = new GlobalStoreDAO();	
+	private static GlobalStoreService service = new GlobalStoreService();
+
+	public static GlobalStoreService getInstance() {
+		return service;
+	}
 
 	public GlobalStoreService() {
 		
@@ -115,6 +120,5 @@ public class GlobalStoreService {
 	public void putDataPoints(DataPoints dataPoints) {
 		this.globalStoreDAO.addServiceUsage(dataPoints.getKey(), WRITE_DATA_POINTS);
 		this.globalStoreDAO.insertDataPoints(dataPoints);
-	}
-
+	}	
 }
