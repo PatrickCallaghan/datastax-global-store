@@ -40,11 +40,13 @@ public class GlobalStoreWS {
 	public Response getObjectByKey(@QueryParam("key") String key, @QueryParam("cl") String consistency) {
 
 		ConsistencyLevel consistencyLevel;
-		if (consistency!=null && Arrays.asList(ConsistencyLevel.values()).contains(consistency.toUpperCase())){ 
+		if (consistency!=null){ 
 			consistencyLevel = ConsistencyLevel.valueOf(consistency.toUpperCase());
 		}else{
 			consistencyLevel = ConsistencyLevel.ONE;				
 		}
+		
+		logger.info("Consistency Level : " + consistencyLevel);
 		
 		ObjectData object = this.globalStoreService.getObjectData(key, consistencyLevel);
 		return Response.status(201).entity(object).build();

@@ -126,10 +126,10 @@ public class GlobalStoreService {
 		this.globalStoreDAO.insertDataPoints(dataPoints);
 	}	
 
-//	public static void main(String args[]){
-//		
-//		GlobalStoreService g = GlobalStoreService.getInstance();
-//		
-//		System.out.println(g.getObjectData("FX/test", ConsistencyLevel.ONE));	 	
-//	}
+	public static void main(String args[]){
+		
+		GlobalStoreService g = GlobalStoreService.getInstance();
+		
+		System.out.println(g.getObjectData("FX/test", ConsistencyLevel.ALL));	 	
+	}
 }

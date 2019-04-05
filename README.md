@@ -59,11 +59,11 @@ To remove the tables and the schema, run the following.
 
 ### Post an object to the store using TTL and CL 
 
-	curl -X POST -H "Content-Type: application/json" -d'{"key":"FX/test","value":"rO0ABXNyAA5qYXZhLnV0aWwuRGF0ZWhqgQFLWXQZAwAAeHB3CAAAAUsmhmEjeA", "ttl":60, "cl"}' http://localhost:5081/datastax-global-store/rest/post/object
+	curl -X POST -H "Content-Type: application/json" -d'{"key":"FX1/test","value":"rO0ABXNyAA5qYXZhLnV0aWwuRGF0ZWhqgQFLWXQZAwAAeHB3CAAAAUsmhmEjeA", "ttl":60, "cl":"QUORUM"}' http://localhost:5081/datastax-global-store/rest/post/object
 
-### Get object from the store
+### Get object from the store using a different CL
 
-	curl -X GET -H "Content-Type: application/json" http://localhost:5081/datastax-global-store/rest/get/object?key=FX/test
+	curl -X GET -H "Content-Type: application/json" http://localhost:5081/datastax-global-store/rest/get/object?key=FX1/test&cl=QUORUM
 
 
 ### Post new items to a time series
