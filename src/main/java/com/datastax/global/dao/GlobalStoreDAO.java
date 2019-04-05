@@ -110,7 +110,7 @@ public class GlobalStoreDAO {
 		if (rs != null && !rs.isExhausted()){
 			
 			Row row = rs.one();
-			return new ObjectData(key, row.getString("value"), row.getInt("ttl"), row.getTime("writetime"));
+			return new ObjectData(key, row.getString("value"), row.getInt("ttl"), row.getTime("writetime"), consistencyLevel);
 		}else{
 			return new ObjectData();
 		}
