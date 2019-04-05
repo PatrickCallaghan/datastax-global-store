@@ -5,7 +5,7 @@ use datastax_global_store;
 CREATE TABLE if not exists object ( 
 	key text,
 	value text,
-	PRIMARY KEY (key, value)
+	PRIMARY KEY (key)
 );
 
 CREATE TABLE if not exists timeseries ( 

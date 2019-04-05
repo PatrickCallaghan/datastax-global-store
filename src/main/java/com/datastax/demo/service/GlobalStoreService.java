@@ -4,7 +4,9 @@ import java.io.IOException;
 
 import org.joda.time.DateTime;
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.global.dao.GlobalStoreDAO;
+import com.datastax.shaded.jackson.databind.deser.impl.ObjectIdValueProperty;
 import com.datastax.timeseries.model.DataPoints;
 import com.datastax.timeseries.model.ObjectData;
 import com.datastax.timeseries.model.Periodicity;
@@ -35,18 +37,20 @@ public class GlobalStoreService {
 	//Cache
 	public void putObjectData(ObjectData objectData){
 		try {
-			//this.globalStoreDAO.addServiceUsage(objectData.getKey(), WRITE_OBJECT_STORE);			
-			this.globalStoreDAO.putObjectInStore(objectData.getKey(), objectData.getValue());
+			this.globalStoreDAO.addServiceUsage(objectData.getKey(), WRITE_OBJECT_STORE);	
+			
+			ConsistencyLevel cl = objectData.getCl() == null ? ConsistencyLevel.ONE : ConsistencyLevel.valueOf(objectData.getCl());
+			
+			this.globalStoreDAO.putObjectInStore(objectData.getKey(), objectData.getValue(), cl, objectData.getTtl());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public ObjectData getObjectData(String key){
+	public ObjectData getObjectData(String key, ConsistencyLevel consistencyLevel){
 		try {
-			//this.globalStoreDAO.addServiceUsage(key, READ_OBJECT_STORE);
-			
-			return this.globalStoreDAO.getObjectFromStore(key);
+			this.globalStoreDAO.addServiceUsage(key, READ_OBJECT_STORE);
+			return this.globalStoreDAO.getObjectFromStore(key, consistencyLevel);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ObjectData();
@@ -121,4 +125,11 @@ public class GlobalStoreService {
 		this.globalStoreDAO.addServiceUsage(dataPoints.getKey(), WRITE_DATA_POINTS);
 		this.globalStoreDAO.insertDataPoints(dataPoints);
 	}	
+
+//	public static void main(String args[]){
+//		
+//		GlobalStoreService g = GlobalStoreService.getInstance();
+//		
+//		System.out.println(g.getObjectData("FX/test", ConsistencyLevel.ONE));	 	
+//	}
 }

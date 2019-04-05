@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.datastax.demo.service.GlobalStoreService;
 import com.datastax.demo.utils.PropertyHelper;
 import com.datastax.demo.utils.Timer;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.timeseries.model.ObjectData;
 
 public class GlobalStoreServiceLoadTest {
@@ -95,7 +96,7 @@ public class GlobalStoreServiceLoadTest {
 						try {
 							key = queueKey.take();
 							if (key!= null) {
-								if (service.getObjectData(key).isEmpty()){
+								if (service.getObjectData(key, ConsistencyLevel.ONE).isEmpty()){
 									emptys.incrementAndGet();
 								}
 							}

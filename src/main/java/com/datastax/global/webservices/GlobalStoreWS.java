@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.demo.service.GlobalStoreService;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.timeseries.model.DataPoints;
 import com.datastax.timeseries.model.ObjectData;
 import com.datastax.timeseries.model.Periodicity;
@@ -29,15 +30,19 @@ public class GlobalStoreWS {
 	private Logger logger = LoggerFactory.getLogger(GlobalStoreWS.class);
 
 	//Service Layer.
-	private GlobalStoreService globalStoreService =  GlobalStoreService.getInstance();
+	private GlobalStoreService globalStoreService = GlobalStoreService.getInstance();
 
 	@GET
 	@Path("/get/object")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getObjectByKey(@QueryParam("key") String key) {
+	public Response getObjectByKey(@QueryParam("key") String key, @QueryParam("cl") String consistency) {
 
-		ObjectData object = this.globalStoreService.getObjectData(key);
-		return Response.status(201).entity(object.getValue()).build();
+		ConsistencyLevel consistencyLevel  = ConsistencyLevel.ONE;
+		if (consistency!=null) 
+			consistencyLevel = ConsistencyLevel.valueOf(consistency); 
+				
+		ObjectData object = this.globalStoreService.getObjectData(key, consistencyLevel);
+		return Response.status(201).entity(object).build();
 	}
 
 	@GET

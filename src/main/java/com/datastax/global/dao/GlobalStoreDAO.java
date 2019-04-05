@@ -19,6 +19,7 @@ import cern.colt.list.LongArrayList;
 import com.datastax.demo.utils.PropertyHelper;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
@@ -51,8 +52,8 @@ public class GlobalStoreDAO {
 	
 	private static final String serviceUsageTableName = defaultKeyspace + ".service_usage";
 		
-	private static final String getFromStoreCQL = "select key, value from " + storeObjectTableName + " where key = ?";
-	private static final String putInStoreCQL = "insert into " + storeObjectTableName + " (key, value) values (?,?)";
+	private static final String getFromStoreCQL = "select key, value, ttl(value) as \"ttl\", writetime(value) as \"writetime\" from " + storeObjectTableName + " where key = ?";
+	private static final String putInStoreCQL = "insert into " + storeObjectTableName + " (key, value) values (?,?) using ttl ?";
 	
 	private static final String insertTimeSeriesCQL = "Insert into " + timeSeriesTableFullName + " (key,dates,values) values (?,?,?);";
 	private static final String selectTimeSeriesCQL = "Select key, dates, values from " + timeSeriesTableFullName + " where key = ?";
@@ -62,7 +63,7 @@ public class GlobalStoreDAO {
 	
 	private static final String insertClusterTimeSeriesCQL = "Insert into " + timeSeriesTableName + " (key,date,value) values (?,?,?);";
 	private static final String selectClusterTimeSeriesCQL = "Select key, date, value from " + timeSeriesTableName + " where key = ? and date > ? and date <= ? limit ?";
-
+	
 	private static final String incrServiceUsageCQL = "update " + serviceUsageTableName
 			+ " set count = count + 1 where namespace=? AND key=? AND service=? and ddmmyyyy=?";
 	
@@ -100,21 +101,25 @@ public class GlobalStoreDAO {
 		this.incrServiceUsage = session.prepare(incrServiceUsageCQL);
 	}
 	
-	public ObjectData getObjectFromStore(String key) throws Exception{
+	public ObjectData getObjectFromStore(String key, ConsistencyLevel consistencyLevel) throws Exception{
 		
 		BoundStatement bound = this.getFromStore.bind(key);
+		bound.setConsistencyLevel(consistencyLevel);
 		
 		ResultSet rs = session.execute(bound);
 		if (rs != null && !rs.isExhausted()){
-			return new ObjectData(key, rs.one().getString("value"));
+			
+			Row row = rs.one();
+			return new ObjectData(key, row.getString("value"), row.getInt("ttl"), row.getTime("writetime"));
 		}else{
 			return new ObjectData();
 		}
 	}
 	
-	public void putObjectInStore(String key, String value) throws IOException{
-		
-		BoundStatement bound = this.putInStore.bind(key, value);		
+	public void putObjectInStore(String key, String value, ConsistencyLevel cl, int ttl) throws IOException{
+				
+		BoundStatement bound = this.putInStore.bind(key, value, ttl);
+		bound.setConsistencyLevel(cl);
 		session.execute(bound);
 	}
 	
